@@ -12,14 +12,12 @@
 #include <ogc/lwp_threads.h>
 #include <sdcard/wiisd_io.h>
 #include "CommonConfig.h"
+#include "app_booter_bin.h"
 
 static u8 *EXECUTE_ADDR = (u8*)0x92000000;
 static u8 *BOOTER_ADDR = (u8*)0x92F00000;
 static void (*entry)() = (void*)0x92F00000;
 static struct __argv *ARGS_ADDR = (struct __argv*)0x93300800;
-
-extern u8 app_booter_bin[];
-extern u32 app_booter_bin_size;
 
 int main(int argc, char *argv[]) 
 {
