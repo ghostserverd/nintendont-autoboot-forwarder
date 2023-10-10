@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 	nincfg.Config &= ~(NIN_CFG_WIIU_WIDE|NIN_CFG_FORCE_WIDE);
 #endif
 #ifdef FORCE_INTERLACED
-	nincfg.Config &= ~(NIN_CFG_BIT_FORCE_PROG);
+	nincfg.Config &= ~(NIN_CFG_FORCE_PROG);
 #endif
 
 	//for example this line would disable any widescreen bits set in the config
