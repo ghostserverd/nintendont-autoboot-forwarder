@@ -26,6 +26,17 @@ INCLUDES	:=	source
 #---------------------------------------------------------------------------------
 
 CFLAGS	= -g -O2 -Wall $(MACHDEP) $(INCLUDE)
+
+ifeq ($(strip $(FW_AUTOBOOT)), 1)
+CFLAGS		+=	-DFW_AUTOBOOT
+endif
+ifeq ($(strip $(FORCE_43)), 1)
+CFLAGS		+=	-DFORCE_43
+endif
+ifeq ($(strip $(LITE)), 1)
+CFLAGS		+=	-DFORCE_INTERLACED
+endif
+
 CXXFLAGS	=	$(CFLAGS)
 
 LDFLAGS	= -g $(MACHDEP) -Wl,-Map,$(notdir $@).map

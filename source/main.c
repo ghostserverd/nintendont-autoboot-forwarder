@@ -13,13 +13,6 @@
 #include <sdcard/wiisd_io.h>
 #include "CommonConfig.h"
 
-//comment this out for non-autoboot version
-#define FW_AUTOBOOT 1
-
-//more compile time options
-FORCE_43 = 0;
-FORCE_INTERLACED = 0;
-
 static u8 *EXECUTE_ADDR = (u8*)0x92000000;
 static u8 *BOOTER_ADDR = (u8*)0x92F00000;
 static void (*entry)() = (void*)0x92F00000;
@@ -77,7 +70,7 @@ int main(int argc, char *argv[])
 	DCFlushRange(BOOTER_ADDR,app_booter_bin_size);
 	ICInvalidateRange(BOOTER_ADDR,app_booter_bin_size);
 
-#if FW_AUTOBOOT
+#ifdef FW_AUTOBOOT
 	f = fopen("sd:/nincfg.bin","rb");
 	if(!f)
 	{
@@ -96,10 +89,10 @@ int main(int argc, char *argv[])
 	nincfg.Config |= (NIN_CFG_AUTO_BOOT);
 	nincfg.Config &= ~(NIN_CFG_USB);
 
-#if FORCE_43
+#ifdef FORCE_43
 	nincfg.Config &= ~(NIN_CFG_WIIU_WIDE|NIN_CFG_FORCE_WIDE);
 #endif
-#if FORCE_INTERLACED
+#ifdef FORCE_INTERLACED
 	nincfg.Config &= ~(NIN_CFG_BIT_FORCE_PROG);
 #endif
 
