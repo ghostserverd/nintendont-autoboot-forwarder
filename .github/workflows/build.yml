@@ -13,6 +13,6 @@ jobs:
         docker run --rm -v ${PWD}:/project plugin_builder build.sh
     - uses: actions/upload-artifact@v3
       with:
-        name: SNTP Client.wps
-        path: "*.wps"
+        name: Nintendont autoboot forwarder
+        path: "*.dol"
         if-no-files-found: error
