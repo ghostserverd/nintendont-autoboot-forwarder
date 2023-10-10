@@ -34,7 +34,7 @@ BUILD_FW			:=	build_fw
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-CFLAGS	= -g -O2 -Wall
+CFLAGS	= -Ofast -Wall -flto=auto -fno-fat-lto-objects -use-flinker-plugin
 
 ifeq ($(strip $(FW_AUTOBOOT)), 1)
 	CFLAGS		+=	-DFW_AUTOBOOT
@@ -65,7 +65,7 @@ endif
 
 CFLAGS		+=	$(MACHDEP) $(INCLUDE)
 CXXFLAGS	=	$(CFLAGS)
-LDFLAGS		=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
+LDFLAGS		=	$(CFLAGS) -Wl,-Map,$(notdir $@).map
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
