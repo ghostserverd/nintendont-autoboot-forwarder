@@ -1,0 +1,18 @@
+name: Build Binary
+
+on: [push, pull_request]
+
+jobs:
+  build-binary:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build Binary
+      run: |
+        docker build -t plugin_builder .
+        docker run --rm -v ${PWD}:/project plugin_builder build.sh
+    - uses: actions/upload-artifact@v3
+      with:
+        name: SNTP Client.wps
+        path: "*.wps"
+        if-no-files-found: error
