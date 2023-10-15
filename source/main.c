@@ -92,6 +92,7 @@ int main(int argc, char *argv[])
 #endif
 #ifdef FORCE_INTERLACED
 	nincfg.Config &= ~(NIN_CFG_FORCE_PROG);
+	nincfg.VideoMode &= ~(NIN_VID_PROG);
 #endif
 
 	//for example this line would disable any widescreen bits set in the config
