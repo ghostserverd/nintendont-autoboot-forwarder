@@ -195,6 +195,8 @@ int main(int argc, char *argv[])
 
 	WDVD_FST_Unmount();
 	WDVD_Close();
+	fatUnmount("sd:");
+	__io_wiisd.shutdown();
 
 	char *CMD_ADDR = (char*)ARGS_ADDR + sizeof(struct __argv);
 	fsize = strlen(fPath) + 1;
@@ -211,10 +213,6 @@ int main(int argc, char *argv[])
 	memcpy(CMD_ADDR+fsize, &nincfg, sizeof(NIN_CFG));
 	CMD_ADDR[fsize+sizeof(NIN_CFG)] = 0;
 	DCFlushRange(ARGS_ADDR, full_args_len);
-
-	//possibly affects nintendont speed?
-	fatUnmount("sd:");
-	__io_wiisd.shutdown();
 
 	VIDEO_SetBlack(TRUE);
 	VIDEO_Flush();
