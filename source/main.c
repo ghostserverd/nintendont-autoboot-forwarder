@@ -134,27 +134,44 @@ int main(int argc, char *argv[])
 		debugPrint("Error opening game specific config on SD!\n");
 
 	fsize = 0;
-	if(WDVD_FST_Open("nincfg.bin") == 0)
+	// TODO: Stupid workaround
+	if(WDVD_FST_Unmount())
 	{
-		if(WDVD_FST_Read((uint8_t *)&nincfg,sizeof(NIN_CFG)) == sizeof(NIN_CFG))
+		if(!WDVD_FST_Mount())
 		{
-			debugPrint("Nincfg embedded into inject loaded!\n");
+			debugPrint("Error remounting iso!\n");
 			fsize = 1;
 		}
-		else
-			debugPrint("Error reading nincfg from iso!\n");
-
-		WDVD_FST_Close();
-
-		// TODO: Remove / let injector set this correctly:
-		memset(nincfg.GamePath,0,255);
-		memset(nincfg.CheatPath,0,255);
-		nincfg.Config |= (NIN_CFG_AUTO_BOOT);
-		nincfg.Config &= ~(NIN_CFG_USB);
-		strcpy(nincfg.GamePath,"di");
 	}
 	else
-		debugPrint("Error opening nincfg from iso!\n");
+		debugPrint("Error unmounting iso!\n");
+
+	if(!fsize)
+	{
+		if(WDVD_FST_Open("nincfg.bin") == 0)
+		{
+			if(WDVD_FST_Read((uint8_t *)&nincfg,sizeof(NIN_CFG)) == sizeof(NIN_CFG))
+			{
+				debugPrint("Nincfg embedded into inject loaded!\n");
+				fsize = 1;
+			}
+			else
+				debugPrint("Error reading nincfg from iso!\n");
+
+			WDVD_FST_Close();
+
+			// TODO: Remove / let injector set this correctly:
+			memset(nincfg.GamePath,0,255);
+			memset(nincfg.CheatPath,0,255);
+			nincfg.Config |= (NIN_CFG_AUTO_BOOT);
+			nincfg.Config &= ~(NIN_CFG_USB);
+			strcpy(nincfg.GamePath,"di");
+		}
+		else
+			debugPrint("Error opening nincfg from iso!\n");
+	}
+	else
+		fsize = 0;
 
 	if(!fsize)
 	{
