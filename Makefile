@@ -18,14 +18,28 @@ include $(DEVKITPPC)/wii_rules
 SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	source
-TARGET		:=	nintendont_loader
-BUILD		:=	build
+
+TARGET_NORMAL	:=	nintendont_loader
+TARGET_DEBUG	:=	nintendont_loader_dbg
+
+BUILD_NORMAL	:=	build
+BUILD_DEBUG	:=	build_dbg
 
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-CFLAGS		=	-Ofast -Wall -flto=auto -fno-fat-lto-objects -use-flinker-plugin \
-				$(MACHDEP) $(INCLUDE)
+CFLAGS	= -Ofast -Wall -flto=auto -fno-fat-lto-objects -use-flinker-plugin
+
+ifeq ($(strip $(DEBUG_BUILD)), 1)
+	CFLAGS	+=	-DDEBUG_BUILD
+	TARGET	:=	$(TARGET_DEBUG)
+	BUILD	:=	$(BUILD_DEBUG)
+else
+	TARGET	:=	$(TARGET_NORMAL)
+	BUILD	:=	$(BUILD_NORMAL)
+endif
+
+CFLAGS		+=	$(MACHDEP) $(INCLUDE)
 CXXFLAGS	=	$(CFLAGS)
 LDFLAGS		=	$(CFLAGS) -Wl,-Map,$(notdir $@).map
 
@@ -101,7 +115,8 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(CURDIR)/$(BUILD) $(OUTPUT).elf $(OUTPUT).dol
+	@rm -fr $(CURDIR)/$(BUILD_NORMAL) $(CURDIR)/$(TARGET_NORMAL).elf $(CURDIR)/$(TARGET_NORMAL).dol \
+		$(CURDIR)/$(BUILD_DEBUG) $(CURDIR)/$(TARGET_DEBUG).elf $(CURDIR)/$(TARGET_DEBUG).dol
 
 
 #---------------------------------------------------------------------------------

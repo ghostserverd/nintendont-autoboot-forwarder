@@ -20,8 +20,6 @@ static u8 *BOOTER_ADDR = (u8*)0x92F00000;
 static void (*entry)() = (void*)0x92F00000;
 static struct __argv *ARGS_ADDR = (struct __argv*)0x93300800;
 
-#define DEBUG_BUILD
-
 #ifdef DEBUG_BUILD
 static inline void debugPrint(const char *msg)
 {
