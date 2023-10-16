@@ -120,9 +120,9 @@ int main(int argc, char *argv[])
 		return -2;
 	}
 
-	fPath = "sd:/nintendont/configs/XXXX.bin";
-	*(uint32_t *)(fPath + strlen("sd:/nintendont/configs/")) = fsize;
-	f = fopen(fPath,"rb");
+	char *fPath2 = "sd:/nintendont/configs/XXXX.bin";
+	*(uint32_t *)(fPath2 + strlen("sd:/nintendont/configs/")) = fsize;
+	f = fopen(fPath2,"rb");
 	if(f)
 	{
 		if(fread(&nincfg,sizeof(NIN_CFG),1,f) == 1)
@@ -197,19 +197,19 @@ int main(int argc, char *argv[])
 	WDVD_Close();
 
 	char *CMD_ADDR = (char*)ARGS_ADDR + sizeof(struct __argv);
-	size_t full_fPath_len = strlen(fPath)+1;
-	size_t full_nincfg_len = sizeof(NIN_CFG)+1;
-	size_t full_args_len = sizeof(struct __argv)+full_fPath_len+full_nincfg_len;
+	fsize = strlen(fPath) + 1;
+	size_t fsize2 = sizeof(NIN_CFG) + fsize;
+	size_t full_args_len = sizeof(struct __argv)+fsize2;
 
 	memset(ARGS_ADDR, 0, full_args_len);
 	ARGS_ADDR->argvMagic = ARGV_MAGIC;
 	ARGS_ADDR->commandLine = CMD_ADDR;
-	ARGS_ADDR->length = full_fPath_len+full_nincfg_len;
+	ARGS_ADDR->length = fsize2;
 	ARGS_ADDR->argc = 2;
 
-	memcpy(CMD_ADDR, fPath, full_fPath_len);
-	memcpy(CMD_ADDR+full_fPath_len, &nincfg, sizeof(NIN_CFG));
-	CMD_ADDR[full_fPath_len+sizeof(NIN_CFG)] = 0;
+	memcpy(CMD_ADDR, fPath, fsize);
+	memcpy(CMD_ADDR+fsize, &nincfg, sizeof(NIN_CFG));
+	CMD_ADDR[fsize+sizeof(NIN_CFG)] = 0;
 	DCFlushRange(ARGS_ADDR, full_args_len);
 
 	//possibly affects nintendont speed?
