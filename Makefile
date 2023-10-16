@@ -18,52 +18,14 @@ include $(DEVKITPPC)/wii_rules
 SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	source
-
-TARGET_AUTOBOOT			:=	nintendont_default_autobooter
-TARGET_FORCE43_INTERLACED	:=	nintendont_force_43_interlaced_autobooter
-TARGET_FORCE43			:=	nintendont_force_4_by_3_autobooter
-TARGET_INTERLACED		:=	nintendont_force_interlaced_autobooter
-TARGET_FW			:=	nintendont_forwarder
-
-BUILD_AUTOBOOT			:=	build_autoboot
-BUILD_FORCE43_INTERLACED	:=	build_force_43_interlaced
-BUILD_FORCE43			:=	build_force_43
-BUILD_INTERLACED		:=	build_interlaced
-BUILD_FW			:=	build_fw
+TARGET		:=	nintendont_loader
+BUILD		:=	build
 
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-CFLAGS	= -Ofast -Wall -flto=auto -fno-fat-lto-objects -use-flinker-plugin
-
-ifeq ($(strip $(FW_AUTOBOOT)), 1)
-	CFLAGS		+=	-DFW_AUTOBOOT
-	ifeq ($(strip $(FORCE_43)), 1)
-		CFLAGS	+=	-DFORCE_43
-		ifeq ($(strip $(FORCE_INTERLACED)), 1)
-			CFLAGS	+=	-DFORCE_INTERLACED
-			TARGET	:=	$(TARGET_FORCE43_INTERLACED)
-			BUILD	:=	$(BUILD_FORCE43_INTERLACED)
-		else
-			TARGET	:=	$(TARGET_FORCE43)
-			BUILD	:=	$(BUILD_FORCE43)
-		endif
-	else
-		ifeq ($(strip $(FORCE_INTERLACED)), 1)
-			CFLAGS	+=	-DFORCE_INTERLACED
-			TARGET	:=	$(TARGET_INTERLACED)
-			BUILD	:=	$(BUILD_INTERLACED)
-		else
-			TARGET	:=	$(TARGET_AUTOBOOT)
-			BUILD	:=	$(BUILD_AUTOBOOT)
-		endif
-	endif
-else
-	TARGET	:=	$(TARGET_FW)
-	BUILD	:=	$(BUILD_FW)
-endif
-
-CFLAGS		+=	$(MACHDEP) $(INCLUDE)
+CFLAGS		=	-Ofast -Wall -flto=auto -fno-fat-lto-objects -use-flinker-plugin \
+				$(MACHDEP) $(INCLUDE)
 CXXFLAGS	=	$(CFLAGS)
 LDFLAGS		=	$(CFLAGS) -Wl,-Map,$(notdir $@).map
 
@@ -139,11 +101,7 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(CURDIR)/$(BUILD_AUTOBOOT) $(CURDIR)/$(TARGET_AUTOBOOT).elf $(CURDIR)/$(TARGET_AUTOBOOT).dol \
-		$(CURDIR)/$(BUILD_FORCE43_INTERLACED) $(CURDIR)/$(TARGET_FORCE43_INTERLACED).elf $(CURDIR)/$(TARGET_FORCE43_INTERLACED).dol \
-		$(CURDIR)/$(BUILD_FORCE43) $(CURDIR)/$(TARGET_FORCE43).elf $(CURDIR)/$(TARGET_FORCE43).dol \
-		$(CURDIR)/$(BUILD_INTERLACED) $(CURDIR)/$(TARGET_INTERLACED).elf $(CURDIR)/$(TARGET_INTERLACED).dol \
-		$(CURDIR)/$(BUILD_FW) $(CURDIR)/$(TARGET_FW).elf $(CURDIR)/$(TARGET_FW).dol
+	@rm -fr $(CURDIR)/$(BUILD) $(OUTPUT).elf $(OUTPUT).dol
 
 
 #---------------------------------------------------------------------------------

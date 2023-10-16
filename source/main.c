@@ -13,11 +13,41 @@
 #include <sdcard/wiisd_io.h>
 #include "CommonConfig.h"
 #include "app_booter_bin.h"
+#include "wdvd.h"
 
 static u8 *EXECUTE_ADDR = (u8*)0x92000000;
 static u8 *BOOTER_ADDR = (u8*)0x92F00000;
 static void (*entry)() = (void*)0x92F00000;
 static struct __argv *ARGS_ADDR = (struct __argv*)0x93300800;
+
+#define DEBUG_BUILD
+
+#ifdef DEBUG_BUILD
+static inline void debugPrint(const char *msg)
+{
+	printf(msg);
+	sleep(2);
+}
+#else
+	#define debugPrint(...)
+#endif
+
+static uint32_t getIdFromIso()
+{
+	if(WDVD_FST_OpenDisc(0) == 0)
+	{
+		uint32_t ret;
+		if(WDVD_FST_Read((uint8_t *)&ret, 4) == 4)
+			return ret;
+
+		WDVD_FST_Close();
+		printf("Error reading iso!\n");
+	}
+	else
+		printf("Error opening iso!\n");
+
+	return 0;
+}
 
 int main(int argc, char *argv[]) 
 {
@@ -68,36 +98,106 @@ int main(int argc, char *argv[])
 	DCFlushRange(BOOTER_ADDR,app_booter_bin_size);
 	ICInvalidateRange(BOOTER_ADDR,app_booter_bin_size);
 
-#ifdef FW_AUTOBOOT
-	f = fopen("sd:/nincfg.bin","rb");
-	if(!f)
+	NIN_CFG nincfg;
+
+	if(WDVD_Init() == 0)
 	{
-		printf("nincfg.bin not found!\n");
+		if(WDVD_FST_Mount())
+		{
+			fsize = getIdFromIso();
+			if(!fsize)
+				WDVD_FST_Unmount();
+		}
+		else
+		{
+			printf("Error mounting iso!\n");
+			WDVD_Close();
+		}
+	}
+	else
+		printf("Error initialising WDVD!\n");
+
+	if(!fsize)
+	{
 		sleep(2);
 		return -2;
 	}
-	NIN_CFG nincfg;
-	fread(&nincfg,1,sizeof(NIN_CFG),f);
-	fclose(f);
 
-	memset(nincfg.GamePath,0,255);
-	memset(nincfg.CheatPath,0,255);
-	//this config can be modified with whatever settings you want for this game
-	//by default it enables autoboot and sets it to boot from sd (wii vc default)
-	nincfg.Config |= (NIN_CFG_AUTO_BOOT);
-	nincfg.Config &= ~(NIN_CFG_USB);
+	fPath = "sd:/nintendont/configs/XXXX.bin";
+	*(uint32_t *)(fPath + strlen("sd:/nintendont/configs/")) = fsize;
+	f = fopen(fPath,"rb");
+	if(f)
+	{
+		if(fread(&nincfg,sizeof(NIN_CFG),1,f) == 1)
+		{
+			debugPrint("Game specific config loaded from SD!\n");
+			goto clearNincfg;
+		}
 
-#ifdef FORCE_43
-	nincfg.Config &= ~(NIN_CFG_WIIU_WIDE|NIN_CFG_FORCE_WIDE);
-#endif
-#ifdef FORCE_INTERLACED
-	nincfg.Config &= ~(NIN_CFG_FORCE_PROG);
-	nincfg.VideoMode &= ~(NIN_VID_PROG);
-#endif
+		debugPrint("Error reading game specific config from SD!\n");
+		fclose(f);
+	}
+	else
+		debugPrint("Error opening game specific config on SD!\n");
 
-	//for example this line would disable any widescreen bits set in the config
-	//nincfg.Config &= ~(NIN_CFG_USB|NIN_CFG_WIIU_WIDE|NIN_CFG_FORCE_WIDE);
-	strcpy(nincfg.GamePath,"di");
+	fsize = 0;
+	if(WDVD_FST_Open("nincfg.bin") == 0)
+	{
+		if(WDVD_FST_Read((uint8_t *)&nincfg,sizeof(NIN_CFG)) == sizeof(NIN_CFG))
+		{
+			debugPrint("Nincfg embedded into inject loaded!\n");
+			fsize = 1;
+		}
+		else
+			debugPrint("Error reading nincfg from iso!\n");
+
+		WDVD_FST_Close();
+
+		// TODO: Remove / let injector set this correctly:
+		memset(nincfg.GamePath,0,255);
+		memset(nincfg.CheatPath,0,255);
+		nincfg.Config |= (NIN_CFG_AUTO_BOOT);
+		nincfg.Config &= ~(NIN_CFG_USB);
+		strcpy(nincfg.GamePath,"di");
+	}
+	else
+		debugPrint("Error opening nincfg from iso!\n");
+
+	if(!fsize)
+	{
+		f = fopen("sd:/nincfg.bin","rb");
+		if(!f)
+		{
+			WDVD_FST_Unmount();
+			WDVD_Close();
+			printf("Error opening nincfg!\n");
+			sleep(2);
+			return -2;
+		}
+
+		if(fread(&nincfg,sizeof(NIN_CFG),1,f) != 1)
+		{
+			fclose(f);
+			WDVD_FST_Unmount();
+			WDVD_Close();
+			printf("Error reading nincfg!\n");
+			sleep(2);
+			return -2;
+		}
+
+		debugPrint("Fallback nincfg loaded!\n");
+
+	clearNincfg:
+		fclose(f);
+		memset(nincfg.GamePath,0,255);
+		memset(nincfg.CheatPath,0,255);
+		nincfg.Config |= (NIN_CFG_AUTO_BOOT);
+		nincfg.Config &= ~(NIN_CFG_USB);
+		strcpy(nincfg.GamePath,"di");
+	}
+
+	WDVD_FST_Unmount();
+	WDVD_Close();
 
 	char *CMD_ADDR = (char*)ARGS_ADDR + sizeof(struct __argv);
 	size_t full_fPath_len = strlen(fPath)+1;
@@ -114,20 +214,6 @@ int main(int argc, char *argv[])
 	memcpy(CMD_ADDR+full_fPath_len, &nincfg, sizeof(NIN_CFG));
 	CMD_ADDR[full_fPath_len+sizeof(NIN_CFG)] = 0;
 	DCFlushRange(ARGS_ADDR, full_args_len);
-#else
-	char *CMD_ADDR = (char*)ARGS_ADDR + sizeof(struct __argv);
-	size_t full_fPath_len = strlen(fPath)+1;
-	size_t full_args_len = sizeof(struct __argv)+full_fPath_len;
-
-	memset(ARGS_ADDR, 0, full_args_len);
-	ARGS_ADDR->argvMagic = ARGV_MAGIC;
-	ARGS_ADDR->commandLine = CMD_ADDR;
-	ARGS_ADDR->length = full_fPath_len;
-	ARGS_ADDR->argc = 1;
-
-	memcpy(CMD_ADDR, fPath, full_fPath_len);
-	DCFlushRange(ARGS_ADDR, full_args_len);
-#endif
 
 	//possibly affects nintendont speed?
 	fatUnmount("sd:");

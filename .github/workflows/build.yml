@@ -10,7 +10,7 @@ jobs:
     - name: Build Binary
       run: |
         docker build -t plugin_builder .
-        docker run --rm -v ${PWD}:/project plugin_builder ./build.sh
+        docker run --rm -v ${PWD}:/project plugin_builder make
     - uses: actions/upload-artifact@v3
       with:
         name: Nintendont autoboot forwarder
