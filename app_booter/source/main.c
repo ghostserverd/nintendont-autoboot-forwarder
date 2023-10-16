@@ -7,7 +7,6 @@
 #include "string.h"
 
 #include "dolloader.h"
-#include "elfloader.h"
 #include "sync.h"
 
 #define EXECUTABLE_MEM_ADDR		0x92000000
@@ -16,23 +15,17 @@
 void _main(void)
 {
 	void *exeBuffer = (void *)EXECUTABLE_MEM_ADDR;
-	u32 exeEntryPointAddress = 0;
-	entrypoint exeEntryPoint;
+	u32 exeEntryPointAddress = load_dol_image(exeBuffer);
+	entrypoint exeEntryPoint = (entrypoint)exeEntryPointAddress;
 
-	if(valid_elf_image(exeBuffer) == 1)
-		exeEntryPointAddress = load_elf_image(exeBuffer);
-	else
-		exeEntryPointAddress = load_dol_image(exeBuffer);
-
-	exeEntryPoint = (entrypoint)exeEntryPointAddress;
 	if(!exeEntryPoint)
 		return;
 
 	if(SYSTEM_ARGV->argvMagic == ARGV_MAGIC)
 	{
-		void *new_argv = (void *) (exeEntryPointAddress + 8);
-		memcpy(new_argv, SYSTEM_ARGV, sizeof(struct __argv));
-		sync_before_exec(new_argv, sizeof(struct __argv));
+		exeBuffer = (void *) (exeEntryPointAddress + 8);
+		memcpy(exeBuffer, SYSTEM_ARGV, sizeof(struct __argv));
+		sync_before_exec(exeBuffer, sizeof(struct __argv));
 	}
 
 	exeEntryPoint();

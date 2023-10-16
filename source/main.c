@@ -69,12 +69,13 @@ int main(int argc, char *argv[])
 	CON_InitEx(rmode, x, y, w, h);
 	VIDEO_ClearFrameBuffer(rmode, xfb, COLOR_BLACK);
 	printf(" \n");
+	debugPrint("Hello world!\n");
 
 	__io_wiisd.startup();
 	__io_wiisd.isInserted();
 	fatMount("sd", &__io_wiisd, 0, 4, 64);
 
-	const char *fPath = "sd:/apps/nintendont/boot.dol";
+	char *fPath = "sd:/apps/nintendont/boot.dol";
 	FILE *f = fopen(fPath,"rb");
 	if(!f)
 	{
@@ -100,6 +101,7 @@ int main(int argc, char *argv[])
 
 	NIN_CFG nincfg;
 
+	fsize = 0;
 	if(WDVD_Init() == 0)
 	{
 		if(WDVD_FST_Mount())

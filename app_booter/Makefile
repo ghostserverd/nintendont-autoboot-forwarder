@@ -36,7 +36,7 @@ INCLUDES	:=
 # options for code generation
 #---------------------------------------------------------------------------------
 MACHDEP := -mno-eabi -mno-sdata -mcpu=750
-CFLAGS	:= -Wall -W -O1 -ffreestanding -std=gnu99 -Wstrict-aliasing=2 $(MACHDEP) $(INCLUDE)
+CFLAGS	:= -Wall -W -Os -ffreestanding -std=gnu99 -Wstrict-aliasing=2 $(MACHDEP) $(INCLUDE)
 LDFLAGS	:= -nostartfiles -nostdlib $(MACHDEP)
 
 #---------------------------------------------------------------------------------

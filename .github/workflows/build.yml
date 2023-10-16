@@ -13,6 +13,6 @@ jobs:
         docker run --rm -v ${PWD}:/project plugin_builder make
     - uses: actions/upload-artifact@v3
       with:
-        name: Nintendont autoboot forwarder
+        name: Nintendont loader
         path: "*.dol"
         if-no-files-found: error

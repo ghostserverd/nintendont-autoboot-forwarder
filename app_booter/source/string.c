@@ -2,24 +2,25 @@
 // This code is licensed to you under the terms of the GNU GPL, version 2;
 // see file COPYING or http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
 
-#include <stdio.h>
+#include <stdint.h>
 
-void *memset(void *b, int c, size_t len)
+void *memset(void *b, uint8_t c, size_t len)
 {
-	size_t i;
-
-	for (i = 0; i < len; i++)
-		((unsigned char *)b)[i] = c;
+	for((uint8_t *)ptr = (uint8_t *)b; len; --len;
+		*ptr++ = c;
 
 	return b;
 }
 
 void *memcpy(void *dst, const void *src, size_t len)
 {
-	size_t i;
+	uint8_t *dst8 = (uint8_t *)dst;
+	uint8_t *src8 = (uint8_t *)src;
 
-	for (i = 0; i < len; i++)
-		((unsigned char *)dst)[i] = ((unsigned char *)src)[i];
-
+	while(len)
+	{
+		*dst++ = *src++;
+		--len;
+	}
 	return dst;
 }
