@@ -51,11 +51,9 @@ static uint32_t getIdFromIso()
 
 int main(int argc, char *argv[]) 
 {
-	void *xfb = NULL;
-	GXRModeObj *rmode = NULL;
 	VIDEO_Init();
-	rmode = VIDEO_GetPreferredMode(NULL);
-	xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
+	GXRModeObj *rmode = VIDEO_GetPreferredMode(NULL);
+	void *xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
 	VIDEO_Configure(rmode);
 	VIDEO_SetNextFramebuffer(xfb);
 	VIDEO_SetBlack(FALSE);
@@ -63,10 +61,8 @@ int main(int argc, char *argv[])
 	VIDEO_WaitVSync();
 	if(rmode->viTVMode&VI_NON_INTERLACE)
 		VIDEO_WaitVSync();
-	int x = 24, y = 32, w, h;
-	w = rmode->fbWidth - (32);
-	h = rmode->xfbHeight - (48);
-	CON_InitEx(rmode, x, y, w, h);
+
+	CON_InitEx(rmode, 24, 32, rmode->fbWidth - 32, rmode->xfbHeight - 48);
 	VIDEO_ClearFrameBuffer(rmode, xfb, COLOR_BLACK);
 	printf(" \n");
 	debugPrint("Hello world!\n");
