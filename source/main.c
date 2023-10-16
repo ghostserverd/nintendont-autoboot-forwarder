@@ -79,11 +79,6 @@ int main(int argc, char *argv[])
 	FILE *f = fopen(fPath,"rb");
 	if(!f)
 	{
-		fPath = "sd:/apps/Nintendont/boot.dol";
-		f = fopen(fPath,"rb");
-	}
-	if(!f)
-	{
 		printf("boot.dol not found!\n");
 		sleep(2);
 		return -1;
