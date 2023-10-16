@@ -92,7 +92,6 @@ int main(int argc, char *argv[])
 
 	NIN_CFG nincfg;
 
-	debugPrint("Step1...\n");
 	fsize = 0;
 	if(WDVD_Init() == 0)
 	{
@@ -119,8 +118,6 @@ int main(int argc, char *argv[])
 
 	char *fPath2 = "sd:/nintendont/configs/XXXX.bin";
 	*(uint32_t *)(fPath2 + strlen("sd:/nintendont/configs/")) = fsize;
-	printf("Path: %s\n", fPath2);
-	sleep(5);
 	f = fopen(fPath2,"rb");
 	if(f)
 	{
@@ -137,7 +134,6 @@ int main(int argc, char *argv[])
 		debugPrint("Error opening game specific config on SD!\n");
 
 	fsize = 0;
-	debugPrint("Step2...\n");
 	if(WDVD_FST_Open("nincfg.bin") == 0)
 	{
 		if(WDVD_FST_Read((uint8_t *)&nincfg,sizeof(NIN_CFG)) == sizeof(NIN_CFG))
@@ -160,7 +156,6 @@ int main(int argc, char *argv[])
 	else
 		debugPrint("Error opening nincfg from iso!\n");
 
-	debugPrint("Step3...\n");
 	if(!fsize)
 	{
 		f = fopen("sd:/nincfg.bin","rb");
@@ -194,12 +189,10 @@ int main(int argc, char *argv[])
 		strcpy(nincfg.GamePath,"di");
 	}
 
-	debugPrint("Step4...\n");
 	WDVD_FST_Unmount();
 	WDVD_Close();
 	fatUnmount("sd:");
 	__io_wiisd.shutdown();
-	debugPrint("All done!\n");
 
 	char *CMD_ADDR = (char*)ARGS_ADDR + sizeof(struct __argv);
 	fsize = strlen(fPath) + 1;
