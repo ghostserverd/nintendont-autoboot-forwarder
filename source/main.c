@@ -20,18 +20,18 @@ static u8 *BOOTER_ADDR = (u8*)0x92F00000;
 static void (*entry)() = (void*)0x92F00000;
 static struct __argv *ARGS_ADDR = (struct __argv*)0x93300800;
 
-static GXRModeObj *rmode = NULL;
+static void *xfb = NULL;
 
 static void initGraphics()
 {
-	if(rmode)
+	if(xfb)
 		return;
 
-	rmode = VIDEO_GetPreferredMode(NULL);
+	GXRModeObj *rmode = VIDEO_GetPreferredMode(NULL);
 	if(!rmode)
 		return;
 
-	void *xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
+	xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
 	if(!xfb)
 		return;
 
@@ -47,18 +47,6 @@ static void initGraphics()
 	CON_InitEx(rmode, 24, 32, rmode->fbWidth - 32, rmode->xfbHeight - 48);
 	VIDEO_ClearFrameBuffer(rmode, xfb, COLOR_BLACK);
 	printf(" \n");
-}
-
-static inline void deinitGraphics()
-{
-	if(!rmode)
-		return;
-
-	VIDEO_SetBlack(TRUE);
-	VIDEO_Flush();
-	VIDEO_WaitVSync();
-	if(rmode->viTVMode&VI_NON_INTERLACE)
-		VIDEO_WaitVSync();
 }
 
 #ifdef DEBUG_BUILD
@@ -258,8 +246,6 @@ int main(int argc, char *argv[])
 	memcpy(CMD_ADDR+fsize, &nincfg, sizeof(NIN_CFG));
 	CMD_ADDR[fsize+sizeof(NIN_CFG)] = 0;
 	DCFlushRange(ARGS_ADDR, full_args_len);
-
-	deinitGraphics();
 
 	SYS_ResetSystem(SYS_SHUTDOWN,0,0);
 	__lwp_thread_stopmultitasking(entry);
