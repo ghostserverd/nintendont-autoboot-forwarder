@@ -20,7 +20,6 @@ static u8 *BOOTER_ADDR = (u8*)0x92F00000;
 static void (*entry)() = (void*)0x92F00000;
 static struct __argv *ARGS_ADDR = (struct __argv*)0x93300800;
 
-#ifndef NO_DISPLAY
 static GXRModeObj *rmode = NULL;
 
 static void initGraphics()
@@ -61,9 +60,6 @@ static inline void deinitGraphics()
 	if(rmode->viTVMode&VI_NON_INTERLACE)
 		VIDEO_WaitVSync();
 }
-#else
-	#define deinitGraphics(...)
-#endif
 
 #ifdef DEBUG_BUILD
 static inline void debugPrint(const char *msg, ...)
@@ -76,17 +72,12 @@ static inline void debugPrint(const char *msg, ...)
 	#undef NO_DISPLAY
 #else
 	#define debugPrint(...)
-	#ifdef NO_DISPLAY
-		#define nPrintf(...)
-		#define sleep(...)
-	#else
 static inline void nPrintf(const char *msg, ...)
 {
 	initGraphics();
 	printf(msg);
 	sleep(2);
 }
-	#endif
 #endif
 
 static uint32_t getIdFromIso()
@@ -108,9 +99,8 @@ static uint32_t getIdFromIso()
 
 int main(int argc, char *argv[]) 
 {
-#ifndef NO_DISPLAY
 	debugPrint("Hello world! %s\n", "test");
-#endif
+
 	__io_wiisd.startup();
 	__io_wiisd.isInserted();
 	fatMount("sd", &__io_wiisd, 0, 4, 64);

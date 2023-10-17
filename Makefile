@@ -21,11 +21,9 @@ INCLUDES	:=	source
 
 TARGET_NORMAL	:=	nintendont_loader
 TARGET_DEBUG	:=	nintendont_loader_dbg
-TARGET_ND	:=	nintendont_loader_nd
 
 BUILD_NORMAL	:=	build
 BUILD_DEBUG	:=	build_dbg
-BUILD_ND	:=	build_nd
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -37,14 +35,8 @@ ifeq ($(strip $(DEBUG_BUILD)), 1)
 	TARGET	:=	$(TARGET_DEBUG)
 	BUILD	:=	$(BUILD_DEBUG)
 else
-	ifeq ($(strip $(NO_DISPLAY)), 1)
-		CFLAGS	+=	-DNO_DISPLAY
-		TARGET	:=	$(TARGET_ND)
-		BUILD	:=	$(BUILD_ND)
-	else
-		TARGET	:=	$(TARGET_NORMAL)
-		BUILD	:=	$(BUILD_NORMAL)
-	endif
+	TARGET	:=	$(TARGET_NORMAL)
+	BUILD	:=	$(BUILD_NORMAL)
 endif
 
 CFLAGS		+=	$(MACHDEP) $(INCLUDE)
@@ -124,8 +116,7 @@ $(BUILD):
 clean:
 	@echo clean ...
 	@rm -fr $(CURDIR)/$(BUILD_NORMAL) $(CURDIR)/$(TARGET_NORMAL).elf $(CURDIR)/$(TARGET_NORMAL).dol \
-		$(CURDIR)/$(BUILD_DEBUG) $(CURDIR)/$(TARGET_DEBUG).elf $(CURDIR)/$(TARGET_DEBUG).dol \
-		$(CURDIR)/$(BUILD_ND) $(CURDIR)/$(TARGET_ND).elf $(CURDIR)/$(TARGET_ND).dol
+		$(CURDIR)/$(BUILD_DEBUG) $(CURDIR)/$(TARGET_DEBUG).elf $(CURDIR)/$(TARGET_DEBUG).dol
 
 
 #---------------------------------------------------------------------------------
