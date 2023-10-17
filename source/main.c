@@ -26,8 +26,13 @@ static inline void debugPrint(const char *msg)
 	printf(msg);
 	sleep(2);
 }
+	#undef NO_DISPLAY
 #else
 	#define debugPrint(...)
+	#ifdef NO_DISPLAY
+		#define printf(...)
+		#define sleep(...)
+	#endif
 #endif
 
 static uint32_t getIdFromIso()
@@ -49,6 +54,7 @@ static uint32_t getIdFromIso()
 
 int main(int argc, char *argv[]) 
 {
+#ifndef NO_DISPLAY
 	VIDEO_Init();
 	GXRModeObj *rmode = VIDEO_GetPreferredMode(NULL);
 	void *xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
@@ -64,7 +70,7 @@ int main(int argc, char *argv[])
 	VIDEO_ClearFrameBuffer(rmode, xfb, COLOR_BLACK);
 	printf(" \n");
 	debugPrint("Hello world!\n");
-
+#endif
 	__io_wiisd.startup();
 	__io_wiisd.isInserted();
 	fatMount("sd", &__io_wiisd, 0, 4, 64);
@@ -224,13 +230,13 @@ int main(int argc, char *argv[])
 	memcpy(CMD_ADDR+fsize, &nincfg, sizeof(NIN_CFG));
 	CMD_ADDR[fsize+sizeof(NIN_CFG)] = 0;
 	DCFlushRange(ARGS_ADDR, full_args_len);
-
+#ifndef NO_DISPLAY
 	VIDEO_SetBlack(TRUE);
 	VIDEO_Flush();
 	VIDEO_WaitVSync();
 	if(rmode->viTVMode&VI_NON_INTERLACE)
 		VIDEO_WaitVSync();
-
+#endif
 	SYS_ResetSystem(SYS_SHUTDOWN,0,0);
 	__lwp_thread_stopmultitasking(entry);
 
