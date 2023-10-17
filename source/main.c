@@ -4,13 +4,16 @@
  * This software may be modified and distributed under the terms
  * of the MIT license.  See the LICENSE file for details.
  */
-#include <gccore.h>
+#include <stdarg.h>
 #include <stdio.h>
-#include <fat.h>
 #include <string.h>
 #include <unistd.h>
+
+#include <fat.h>
+#include <gccore.h>
 #include <ogc/lwp_threads.h>
 #include <sdcard/wiisd_io.h>
+
 #include "CommonConfig.h"
 #include "app_booter_bin.h"
 #include "wdvd.h"
@@ -22,20 +25,23 @@
 
 static void *xfb = NULL;
 
-static void initGraphics()
+static bool __attribute__((noinline)) initGraphics()
 {
 	if(xfb)
-		return;
+		return true;
 
+	VIDEO_Init();
 	GXRModeObj *rmode = VIDEO_GetPreferredMode(NULL);
 	if(!rmode)
-		return;
+		return false;
 
 	xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
 	if(!xfb)
-		return;
+	{
+		rmode = NULL;
+		return false;
+	}
 
-	VIDEO_Init();
 	VIDEO_Configure(rmode);
 	VIDEO_SetNextFramebuffer(xfb);
 	VIDEO_SetBlack(FALSE);
@@ -47,42 +53,44 @@ static void initGraphics()
 	CON_InitEx(rmode, 24, 32, rmode->fbWidth - 32, rmode->xfbHeight - 48);
 	VIDEO_ClearFrameBuffer(rmode, xfb, COLOR_BLACK);
 	printf(" \n");
+	return true;
+}
+
+static void nPrintf(const char *msg, ...)
+{
+	if(initGraphics())
+	{
+		va_list args;
+		va_start(args, msg);
+		vprintf(msg, args);
+		va_end(args);
+		sleep(2);
+	}
 }
 
 #ifdef DEBUG_BUILD
-static inline void debugPrint(const char *msg, ...)
-{
-	initGraphics();
-	printf(msg);
-	sleep(2);
-}
-	#define nPrintf(x) debugPrint(x)
-	#undef NO_DISPLAY
+	#define debugPrint(x) nPrintf(x)
 #else
 	#define debugPrint(...)
-static inline void nPrintf(const char *msg, ...)
-{
-	initGraphics();
-	printf(msg);
-	sleep(2);
-}
 #endif
 
 static uint32_t getIdFromIso()
 {
+	uint32_t ret = 0;
 	if(WDVD_FST_OpenDisc(0) == 0)
 	{
-		uint32_t ret;
-		if(WDVD_FST_Read((uint8_t *)&ret, 4) == 4)
-			return ret;
+		if(WDVD_FST_Read((uint8_t *)&ret, 4) != 4)
+		{
+			ret = 0;
+			debugPrint("Error reading iso!\n");
+		}
 
 		WDVD_FST_Close();
-		debugPrint("Error reading iso!\n");
 	}
 	else
 		debugPrint("Error opening iso!\n");
 
-	return 0;
+	return ret;
 }
 
 static inline void unmountSD()
@@ -122,9 +130,6 @@ int main(int argc, char *argv[])
 
 	memcpy(BOOTER_ADDR,app_booter_bin,app_booter_bin_size);
 	DCFlushRange(BOOTER_ADDR,app_booter_bin_size);
-	ICInvalidateRange(BOOTER_ADDR,app_booter_bin_size);
-
-	NIN_CFG nincfg;
 
 	fsize = 0;
 	if(WDVD_Init() == 0)
@@ -150,6 +155,7 @@ int main(int argc, char *argv[])
 		return -2;
 	}
 
+	NIN_CFG nincfg;
 	char *fPath2 = "sd:/nintendont/configs/XXXX.bin";
 	*(uint32_t *)(fPath2 + strlen("sd:/nintendont/configs/")) = fsize;
 	f = fopen(fPath2,"rb");
@@ -168,18 +174,6 @@ int main(int argc, char *argv[])
 		debugPrint("Error opening game specific config on SD!\n");
 
 	fsize = 0;
-	// TODO: Stupid workaround
-	if(WDVD_FST_Unmount())
-	{
-		if(!WDVD_FST_Mount())
-		{
-			debugPrint("Error remounting iso!\n");
-			fsize = 1;
-		}
-	}
-	else
-		debugPrint("Error unmounting iso!\n");
-
 	if(!fsize)
 	{
 		if(WDVD_FST_Open("nincfg.bin") == 0)
@@ -215,7 +209,7 @@ int main(int argc, char *argv[])
 			unmountISO();
 			unmountSD();
 			nPrintf("Error opening nincfg!\n");
-			return -2;
+			return -3;
 		}
 
 		if(fread(&nincfg,sizeof(NIN_CFG),1,f) != 1)
@@ -224,7 +218,7 @@ int main(int argc, char *argv[])
 			unmountISO();
 			unmountSD();
 			nPrintf("Error reading nincfg!\n");
-			return -2;
+			return -4;
 		}
 
 		debugPrint("Fallback nincfg loaded!\n");
