@@ -99,7 +99,7 @@ static inline void unmountISO()
 
 int main(int argc, char *argv[]) 
 {
-	debugPrint("Hello world! %s\n", "test");
+	debugPrint("Hello world!\n");
 
 	__io_wiisd.startup();
 	__io_wiisd.isInserted();
