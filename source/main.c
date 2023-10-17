@@ -20,18 +20,72 @@ static u8 *BOOTER_ADDR = (u8*)0x92F00000;
 static void (*entry)() = (void*)0x92F00000;
 static struct __argv *ARGS_ADDR = (struct __argv*)0x93300800;
 
-#ifdef DEBUG_BUILD
-static inline void debugPrint(const char *msg)
+#ifndef NO_DISPLAY
+static GXRModeObj *rmode = NULL;
+
+static void initGraphics()
 {
+	if(rmode)
+		return;
+
+	rmode = VIDEO_GetPreferredMode(NULL);
+	if(!rmode)
+		return;
+
+	void *xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
+	if(!xfb)
+		return;
+
+	VIDEO_Init();
+	VIDEO_Configure(rmode);
+	VIDEO_SetNextFramebuffer(xfb);
+	VIDEO_SetBlack(FALSE);
+	VIDEO_Flush();
+	VIDEO_WaitVSync();
+	if(rmode->viTVMode&VI_NON_INTERLACE)
+		VIDEO_WaitVSync();
+
+	CON_InitEx(rmode, 24, 32, rmode->fbWidth - 32, rmode->xfbHeight - 48);
+	VIDEO_ClearFrameBuffer(rmode, xfb, COLOR_BLACK);
+	printf(" \n");
+}
+
+static inline void deinitGraphics()
+{
+	if(!rmode)
+		return;
+
+	VIDEO_SetBlack(TRUE);
+	VIDEO_Flush();
+	VIDEO_WaitVSync();
+	if(rmode->viTVMode&VI_NON_INTERLACE)
+		VIDEO_WaitVSync();
+}
+#else
+	#define deinitGraphics(...)
+#endif
+
+#ifdef DEBUG_BUILD
+static inline void debugPrint(const char *msg, ...)
+{
+	initGraphics();
 	printf(msg);
 	sleep(2);
 }
+	#define nPrintf(x) debugPrint(x)
 	#undef NO_DISPLAY
 #else
 	#define debugPrint(...)
 	#ifdef NO_DISPLAY
-		#define printf(...)
+		#define nPrintf(...)
 		#define sleep(...)
+	#else
+static inline void nPrintf(const char *msg, ...)
+{
+	initGraphics();
+	printf(msg);
+	sleep(2);
+}
 	#endif
 #endif
 
@@ -44,10 +98,10 @@ static uint32_t getIdFromIso()
 			return ret;
 
 		WDVD_FST_Close();
-		printf("Error reading iso!\n");
+		debugPrint("Error reading iso!\n");
 	}
 	else
-		printf("Error opening iso!\n");
+		debugPrint("Error opening iso!\n");
 
 	return 0;
 }
@@ -55,21 +109,7 @@ static uint32_t getIdFromIso()
 int main(int argc, char *argv[]) 
 {
 #ifndef NO_DISPLAY
-	VIDEO_Init();
-	GXRModeObj *rmode = VIDEO_GetPreferredMode(NULL);
-	void *xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
-	VIDEO_Configure(rmode);
-	VIDEO_SetNextFramebuffer(xfb);
-	VIDEO_SetBlack(FALSE);
-	VIDEO_Flush();
-	VIDEO_WaitVSync();
-	if(rmode->viTVMode&VI_NON_INTERLACE)
-		VIDEO_WaitVSync();
-
-	CON_InitEx(rmode, 24, 32, rmode->fbWidth - 32, rmode->xfbHeight - 48);
-	VIDEO_ClearFrameBuffer(rmode, xfb, COLOR_BLACK);
-	printf(" \n");
-	debugPrint("Hello world!\n");
+	debugPrint("Hello world! %s\n", "test");
 #endif
 	__io_wiisd.startup();
 	__io_wiisd.isInserted();
@@ -79,7 +119,7 @@ int main(int argc, char *argv[])
 	FILE *f = fopen(fPath,"rb");
 	if(!f)
 	{
-		printf("boot.dol not found!\n");
+		nPrintf("boot.dol not found!\n");
 		sleep(2);
 		return -1;
 	}
@@ -107,12 +147,12 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			printf("Error mounting iso!\n");
+			debugPrint("Error mounting iso!\n");
 			WDVD_Close();
 		}
 	}
 	else
-		printf("Error initialising WDVD!\n");
+		debugPrint("Error initialising WDVD!\n");
 
 	if(!fsize)
 	{
@@ -184,8 +224,7 @@ int main(int argc, char *argv[])
 		{
 			WDVD_FST_Unmount();
 			WDVD_Close();
-			printf("Error opening nincfg!\n");
-			sleep(2);
+			nPrintf("Error opening nincfg!\n");
 			return -2;
 		}
 
@@ -194,8 +233,7 @@ int main(int argc, char *argv[])
 			fclose(f);
 			WDVD_FST_Unmount();
 			WDVD_Close();
-			printf("Error reading nincfg!\n");
-			sleep(2);
+			nPrintf("Error reading nincfg!\n");
 			return -2;
 		}
 
@@ -230,13 +268,9 @@ int main(int argc, char *argv[])
 	memcpy(CMD_ADDR+fsize, &nincfg, sizeof(NIN_CFG));
 	CMD_ADDR[fsize+sizeof(NIN_CFG)] = 0;
 	DCFlushRange(ARGS_ADDR, full_args_len);
-#ifndef NO_DISPLAY
-	VIDEO_SetBlack(TRUE);
-	VIDEO_Flush();
-	VIDEO_WaitVSync();
-	if(rmode->viTVMode&VI_NON_INTERLACE)
-		VIDEO_WaitVSync();
-#endif
+
+	deinitGraphics();
+
 	SYS_ResetSystem(SYS_SHUTDOWN,0,0);
 	__lwp_thread_stopmultitasking(entry);
 
