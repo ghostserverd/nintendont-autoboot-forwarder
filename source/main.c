@@ -85,6 +85,18 @@ static uint32_t getIdFromIso()
 	return 0;
 }
 
+static inline void unmountSD()
+{
+	fatUnmount("sd:");
+	__io_wiisd.shutdown();
+}
+
+static inline void unmountISO()
+{
+	WDVD_FST_Unmount();
+	WDVD_Close();
+}
+
 int main(int argc, char *argv[]) 
 {
 	debugPrint("Hello world! %s\n", "test");
@@ -98,7 +110,7 @@ int main(int argc, char *argv[])
 	if(!f)
 	{
 		nPrintf("boot.dol not found!\n");
-		sleep(2);
+		unmountSD();
 		return -1;
 	}
 	fseek(f,0,SEEK_END);
@@ -134,7 +146,7 @@ int main(int argc, char *argv[])
 
 	if(!fsize)
 	{
-		sleep(2);
+		unmountSD();
 		return -2;
 	}
 
@@ -200,8 +212,8 @@ int main(int argc, char *argv[])
 		f = fopen("sd:/nincfg.bin","rb");
 		if(!f)
 		{
-			WDVD_FST_Unmount();
-			WDVD_Close();
+			unmountISO();
+			unmountSD();
 			nPrintf("Error opening nincfg!\n");
 			return -2;
 		}
@@ -209,8 +221,8 @@ int main(int argc, char *argv[])
 		if(fread(&nincfg,sizeof(NIN_CFG),1,f) != 1)
 		{
 			fclose(f);
-			WDVD_FST_Unmount();
-			WDVD_Close();
+			unmountISO();
+			unmountSD();
 			nPrintf("Error reading nincfg!\n");
 			return -2;
 		}
@@ -226,10 +238,8 @@ int main(int argc, char *argv[])
 		strcpy(nincfg.GamePath,"di");
 	}
 
-	WDVD_FST_Unmount();
-	WDVD_Close();
-	fatUnmount("sd:");
-	__io_wiisd.shutdown();
+	unmountISO();
+	unmountSD();
 
 	char *CMD_ADDR = (char*)ARGS_ADDR + sizeof(struct __argv);
 	fsize = strlen(fPath) + 1;
