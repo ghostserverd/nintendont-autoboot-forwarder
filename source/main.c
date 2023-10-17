@@ -15,10 +15,10 @@
 #include "app_booter_bin.h"
 #include "wdvd.h"
 
-static u8 *EXECUTE_ADDR = (u8*)0x92000000;
-static u8 *BOOTER_ADDR = (u8*)0x92F00000;
-static void (*entry)() = (void*)0x92F00000;
-static struct __argv *ARGS_ADDR = (struct __argv*)0x93300800;
+#define EXECUTE_ADDR	((uint8_t *)0x92000000)
+#define BOOTER_ADDR		((void *)0x92F00000)
+#define ARGS_ADDR		((struct __argv*)0x93300800)
+#define entry 			((void *)0x92F00000)
 
 static void *xfb = NULL;
 
@@ -254,7 +254,6 @@ int main(int argc, char *argv[])
 
 	memcpy(CMD_ADDR, fPath, fsize);
 	memcpy(CMD_ADDR+fsize, &nincfg, sizeof(NIN_CFG));
-	CMD_ADDR[fsize+sizeof(NIN_CFG)] = 0;
 	DCFlushRange(ARGS_ADDR, full_args_len);
 
 	SYS_ResetSystem(SYS_SHUTDOWN,0,0);
