@@ -201,7 +201,6 @@ int main(int argc, char *argv[])
 			WDVD_FST_Close();
 
 			// TODO: Remove / let injector set this correctly:
-			memset(nincfg.GamePath,0,255);
 			memset(nincfg.CheatPath,0,255);
 			nincfg.Config |= (NIN_CFG_AUTO_BOOT);
 			nincfg.Config &= ~(NIN_CFG_USB);
@@ -237,7 +236,6 @@ int main(int argc, char *argv[])
 
 	clearNincfg:
 		fclose(f);
-		memset(nincfg.GamePath,0,255);
 		memset(nincfg.CheatPath,0,255);
 		nincfg.Config |= (NIN_CFG_AUTO_BOOT);
 		nincfg.Config &= ~(NIN_CFG_USB);
