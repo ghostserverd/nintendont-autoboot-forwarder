@@ -14,13 +14,13 @@
 #include <ogc/lwp_threads.h>
 #include <sdcard/wiisd_io.h>
 
-#include "CommonConfig.h"
 #include "app_booter_bin.h"
+#include "CommonConfig.h"
 #include "wdvd.h"
 
-#define EXECUTE_ADDR	((uint8_t *)0x92000000)
+#define EXECUTE_ADDR	((void *)0x92000000)
 #define BOOTER_ADDR		((void *)0x92F00000)
-#define ARGS_ADDR		((struct __argv*)0x93300800)
+#define ARGS_ADDR		((struct __argv *)0x93300800)
 #define entry 			((void *)0x92F00000)
 
 static GXRModeObj *rmode = NULL;
