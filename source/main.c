@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
 
 	clearNincfg:
 		fclose(f);
-		memset(nincfg.CheatPath,0,255);
+		nincfg.CheatPath[0] = '\0';
 		nincfg.Config |= (NIN_CFG_AUTO_BOOT);
 		nincfg.Config &= ~(NIN_CFG_USB);
 		strcpy(nincfg.GamePath,"di");
