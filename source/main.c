@@ -199,12 +199,6 @@ int main(int argc, char *argv[])
 				debugPrint("Error reading nincfg from iso!\n");
 
 			WDVD_FST_Close();
-
-			// TODO: Remove / let injector set this correctly:
-			memset(nincfg.CheatPath,0,255);
-			nincfg.Config |= (NIN_CFG_AUTO_BOOT);
-			nincfg.Config &= ~(NIN_CFG_USB);
-			strcpy(nincfg.GamePath,"di");
 		}
 		else
 			debugPrint("Error opening nincfg from iso!\n");
