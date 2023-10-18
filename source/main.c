@@ -23,19 +23,19 @@
 #define ARGS_ADDR		((struct __argv*)0x93300800)
 #define entry 			((void *)0x92F00000)
 
-static void *xfb = NULL;
+static GXRModeObj *rmode = NULL;
 
 static bool __attribute__((noinline)) initGraphics()
 {
-	if(xfb)
+	if(rmode)
 		return true;
 
 	VIDEO_Init();
-	GXRModeObj *rmode = VIDEO_GetPreferredMode(NULL);
+	rmode = VIDEO_GetPreferredMode(NULL);
 	if(!rmode)
 		return false;
 
-	xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
+	void *xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
 	if(!xfb)
 	{
 		rmode = NULL;
@@ -70,8 +70,20 @@ static void nPrintf(const char *msg, ...)
 
 #ifdef DEBUG_BUILD
 	#define debugPrint(x) nPrintf(x)
+static inline void deinitGraphics()
+{
+	if(!rmode)
+		return;
+
+	VIDEO_SetBlack(TRUE);
+	VIDEO_Flush();
+	VIDEO_WaitVSync();
+	if(rmode->viTVMode&VI_NON_INTERLACE)
+		VIDEO_WaitVSync();
+}
 #else
 	#define debugPrint(...)
+	#define deinitGraphics()
 #endif
 
 static uint32_t getIdFromIso()
@@ -249,6 +261,8 @@ int main(int argc, char *argv[])
 	memcpy(CMD_ADDR, fPath, fsize);
 	memcpy(CMD_ADDR+fsize, &nincfg, sizeof(NIN_CFG));
 	DCFlushRange(ARGS_ADDR, full_args_len);
+
+	deinitGraphics();
 
 	SYS_ResetSystem(SYS_SHUTDOWN,0,0);
 	__lwp_thread_stopmultitasking(entry);
