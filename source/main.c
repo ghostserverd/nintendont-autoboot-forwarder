@@ -69,7 +69,7 @@ static void nPrintf(const char *msg, ...)
 }
 
 #ifdef DEBUG_BUILD
-	#define debugPrint(x) nPrintf(x)
+	#define debugPrint(...) nPrintf(__VA_ARGS__)
 static inline void deinitGraphics()
 {
 	if(!rmode)
@@ -175,15 +175,15 @@ int main(int argc, char *argv[])
 	{
 		if(fread(&nincfg,sizeof(NIN_CFG),1,f) == 1)
 		{
-			debugPrint("Game specific config loaded from SD!\n");
+			debugPrint("%s loaded!\n", fPath2);
 			goto clearNincfg;
 		}
 
-		debugPrint("Error reading game specific config from SD!\n");
+		debugPrint("Error reading %s!\n", fPath2);
 		fclose(f);
 	}
 	else
-		debugPrint("Error opening game specific config on SD!\n");
+		debugPrint("Error opening %s!\n", fPath2);
 
 	fsize = 0;
 	if(!fsize)
