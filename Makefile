@@ -17,7 +17,7 @@ include $(DEVKITPPC)/wii_rules
 #---------------------------------------------------------------------------------
 SOURCES		:=	source
 DATA		:=	data
-INCLUDES	:=	source
+INCLUDES	:=	source Nintendont/common/include
 
 TARGET_NORMAL	:=	nintendont_loader
 TARGET_DEBUG	:=	nintendont_loader_dbg
