@@ -17,7 +17,6 @@ include $(DEVKITPPC)/wii_rules
 #---------------------------------------------------------------------------------
 SOURCES		:=	source
 DATA		:=	app_booter
-INCLUDES	:=	source Nintendont/common/include
 
 TARGET_NORMAL	:=	nintendont_loader
 TARGET_DEBUG	:=	nintendont_loader_dbg
@@ -42,6 +41,8 @@ endif
 CFLAGS		+=	$(MACHDEP) $(INCLUDE)
 CXXFLAGS	=	$(CFLAGS)
 LDFLAGS		=	$(CFLAGS) -Wl,-Map,$(notdir $@).map
+
+INCLUDES	:=	source $(BUILD) Nintendont/common/include
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
