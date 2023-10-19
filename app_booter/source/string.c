@@ -4,22 +4,22 @@
 
 #include <gccore.h>
 
-void *memset(void *b, u8 c, u32 len)
+void *memset(u8 *b, u8 c, u32 len)
 {
-	for(u8 *ptr = (u8 *)b; len; --len)
-		*ptr++ = c;
+	while(len)
+	{
+		*b++ = c;
+		--len;
+	}
 
 	return b;
 }
 
-void *memcpy(void *dst, const void *src, u32 len)
+void *memcpy(u8 *dst, const u8 *src, u32 len)
 {
-	u8 *dst8 = (u8 *)dst;
-	u8 *src8 = (u8 *)src;
-
 	while(len)
 	{
-		*dst8++ = *src8++;
+		*dst++ = *src++;
 		--len;
 	}
 	return dst;

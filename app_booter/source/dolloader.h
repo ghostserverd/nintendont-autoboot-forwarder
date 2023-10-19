@@ -7,7 +7,7 @@ extern "C" {
 
 typedef void (*entrypoint) (void);
 
-u32 load_dol_image(const void *dolstart);
+entrypoint load_dol_image(const void *dolstart);
 
 
 #ifdef __cplusplus
