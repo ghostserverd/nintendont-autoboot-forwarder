@@ -37,7 +37,7 @@ INCLUDES	:=
 #---------------------------------------------------------------------------------
 MACHDEP := -mno-eabi -mno-sdata -mcpu=750
 CFLAGS	:= -Wall -W -Os -ffreestanding -std=gnu99 -Wstrict-aliasing=2 $(MACHDEP) $(INCLUDE)
-LDFLAGS	:= -nostartfiles -nostdlib $(MACHDEP)
+LDFLAGS	:= -nostartfiles $(MACHDEP)
 
 #---------------------------------------------------------------------------------
 # move loader to another location - THANKS CREDIAR - 0x81330000 for HBC
