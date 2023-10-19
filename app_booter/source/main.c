@@ -4,6 +4,7 @@
 #include <gccore.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include "../../source/common.h"
 #include "string.h"
 
 #include "sync.h"
@@ -22,8 +23,7 @@ typedef struct {
 	entrypoint entry_point;
 } dolheader;
 
-#define DOLHEADER				((const dolheader *)0x92000000)
-#define SYSTEM_ARGV				((u8 *)0x93300800)
+#define DOLHEADER	((const dolheader *)EXECUTE_ADDR)
 
 void _main(void)
 {
@@ -43,7 +43,7 @@ void _main(void)
 	}
 
 	u8 *exeBuffer = (u8 *)(((u32)DOLHEADER->entry_point) + 8);
-	memcpy(exeBuffer, SYSTEM_ARGV, sizeof(struct __argv));
+	memcpy(exeBuffer, (const u8 *)ARGS_ADDR, sizeof(struct __argv));
 	sync_before_exec(exeBuffer, sizeof(struct __argv));
 
 	DOLHEADER->entry_point();

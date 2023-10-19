@@ -1,9 +1,7 @@
 # pragma once
 
-#include <stdlib.h>
+#define EXECUTE_ADDR	((void *)0x92000000)
+#define ARGS_ADDR		((struct __argv *)0x93300800)
 
-#include <gccore.h>
-
-#define mdelay(x)
-#define malloca(x, y) aligned_alloc(y, x)
-#define ALIGNED(v) ATTRIBUTE_ALIGN(v)
+#define BOOTER_ADDR		((void *)0x92F00000)
+#define ENTRY_ADDR		((void *)0x92F00000)

@@ -15,13 +15,9 @@
 #include <sdcard/wiisd_io.h>
 
 #include "app_booter_bin.h"
+#include "common.h"
 #include "CommonConfig.h"
 #include "wdvd.h"
-
-#define EXECUTE_ADDR	((void *)0x92000000)
-#define BOOTER_ADDR		((void *)0x92F00000)
-#define ARGS_ADDR		((struct __argv *)0x93300800)
-#define entry 			((void *)0x92F00000)
 
 static GXRModeObj *rmode = NULL;
 
@@ -257,7 +253,7 @@ int main(int argc, char *argv[])
 	deinitGraphics();
 
 	SYS_ResetSystem(SYS_SHUTDOWN,0,0);
-	__lwp_thread_stopmultitasking(entry);
+	__lwp_thread_stopmultitasking(ENTRY_ADDR);
 
 	return 0;
 }
