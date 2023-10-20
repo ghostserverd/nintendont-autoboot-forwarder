@@ -4,23 +4,8 @@
 
 #include <gccore.h>
 
-void *memset(u8 *b, u8 c, u32 len)
+void memcpy(u8 *dst, const u8 *src, u32 len)
 {
-	while(len)
-	{
-		*b++ = c;
-		--len;
-	}
-
-	return b;
-}
-
-void *memcpy(u8 *dst, const u8 *src, u32 len)
-{
-	while(len)
-	{
+	while(len--)
 		*dst++ = *src++;
-		--len;
-	}
-	return dst;
 }
