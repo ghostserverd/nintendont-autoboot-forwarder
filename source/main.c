@@ -46,9 +46,8 @@ static bool __attribute__((noinline)) initGraphics()
 	if(rmode->viTVMode&VI_NON_INTERLACE)
 		VIDEO_WaitVSync();
 
-	CON_InitEx(rmode, 24, 32, rmode->fbWidth - 32, rmode->xfbHeight - 48);
+	CON_InitEx(rmode, 24 * 2, 32, rmode->fbWidth - 32, rmode->xfbHeight - (24 * 3));
 	VIDEO_ClearFrameBuffer(rmode, xfb, COLOR_BLACK);
-	printf(" \n");
 	return true;
 }
 
