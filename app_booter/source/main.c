@@ -27,7 +27,7 @@ void _main(void)
 	for(u32 i = 0; i < 7 + 11; ++i)
 		if(DOLHEADER->size[i])
 		{
-			memcpy(DOLHEADER->start[i], ((const void *)DOLHEADER) + DOLHEADER->pos[i], DOLHEADER->size[i]);
+			memcpy(DOLHEADER->start[i], EXECUTE_ADDR + DOLHEADER->pos[i], DOLHEADER->size[i]);
 			sync_before_exec(DOLHEADER->start[i], DOLHEADER->size[i]);
 		}
 
