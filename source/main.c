@@ -135,9 +135,6 @@ int main(int argc, char *argv[])
 	DCFlushRange(EXECUTE_ADDR,fsize);
 	fclose(f);
 
-	memcpy(BOOTER_ADDR,app_booter_bin,app_booter_bin_size);
-	DCFlushRange(BOOTER_ADDR,app_booter_bin_size);
-
 	fsize = 0;
 	if(WDVD_Init() == 0)
 	{
@@ -237,6 +234,9 @@ int main(int argc, char *argv[])
 
 	memcpy((char*)ARGS_ADDR + sizeof(struct __argv) + 1, &nincfg, sizeof(NIN_CFG));
 	DCFlushRange(ARGS_ADDR, sizeof(struct __argv) + sizeof(NIN_CFG) + 1);
+
+	memcpy(BOOTER_ADDR,app_booter_bin,app_booter_bin_size);
+	DCFlushRange(BOOTER_ADDR,app_booter_bin_size);
 
 	deinitGraphics();
 
