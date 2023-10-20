@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
 		{
 			fsize = getIdFromIso();
 			if(!fsize)
-				WDVD_FST_Unmount();
+				unmountISO();
 		}
 		else
 		{
