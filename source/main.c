@@ -121,8 +121,7 @@ int main(int argc, char *argv[])
 	__io_wiisd.isInserted();
 	fatMount("sd", &__io_wiisd, 0, 4, 64);
 
-	const char *fPath = "sd:/apps/nintendont/boot.dol";
-	FILE *f = fopen(fPath,"rb");
+	FILE *f = fopen("sd:/apps/nintendont/boot.dol","rb");
 	if(!f)
 	{
 		nPrintf("boot.dol not found!\n");
@@ -164,43 +163,38 @@ int main(int argc, char *argv[])
 	}
 
 	NIN_CFG nincfg;
-	char *fPath2 = "sd:/nintendont/configs/XXXX.bin";
-	*(uint32_t *)(fPath2 + strlen("sd:/nintendont/configs/")) = fsize;
-	f = fopen(fPath2,"rb");
+	char *fPath = "sd:/nintendont/configs/XXXX.bin";
+	*(uint32_t *)(fPath + strlen("sd:/nintendont/configs/")) = fsize;
+	f = fopen(fPath,"rb");
 	if(f)
 	{
 		if(fread(&nincfg,sizeof(NIN_CFG),1,f) == 1)
 		{
-			debugPrint("%s loaded!\n", fPath2);
+			debugPrint("%s loaded!\n", fPath);
 			goto clearNincfg;
 		}
 
-		debugPrint("Error reading %s!\n", fPath2);
+		debugPrint("Error reading %s!\n", fPath);
 		fclose(f);
 	}
 	else
-		debugPrint("Error opening %s!\n", fPath2);
+		debugPrint("Error opening %s!\n", fPath);
 
 	fsize = 0;
-	if(!fsize)
+	if(WDVD_FST_Open("nincfg.bin") == 0)
 	{
-		if(WDVD_FST_Open("nincfg.bin") == 0)
+		if(WDVD_FST_Read((uint8_t *)&nincfg, sizeof(NIN_CFG)) == sizeof(NIN_CFG))
 		{
-			if(WDVD_FST_Read((uint8_t *)&nincfg,sizeof(NIN_CFG)) == sizeof(NIN_CFG))
-			{
-				debugPrint("Nincfg embedded into inject loaded!\n");
-				fsize = 1;
-			}
-			else
-				debugPrint("Error reading nincfg from iso!\n");
-
-			WDVD_FST_Close();
+			debugPrint("Nincfg embedded into inject loaded!\n");
+			fsize = 1;
 		}
 		else
-			debugPrint("Error opening nincfg from iso!\n");
+			debugPrint("Error reading nincfg from iso!\n");
+
+		WDVD_FST_Close();
 	}
 	else
-		fsize = 0;
+		debugPrint("Error opening nincfg from iso!\n");
 
 	if(!fsize)
 	{
@@ -235,20 +229,14 @@ int main(int argc, char *argv[])
 	unmountISO();
 	unmountSD();
 
-	char *CMD_ADDR = (char*)ARGS_ADDR + sizeof(struct __argv);
-	fsize = strlen(fPath) + 1;
-	size_t fsize2 = sizeof(NIN_CFG) + fsize;
-	size_t full_args_len = sizeof(struct __argv)+fsize2;
-
-	memset(ARGS_ADDR, 0, full_args_len);
+	memset(ARGS_ADDR, 0, sizeof(struct __argv) + 1);
 	ARGS_ADDR->argvMagic = ARGV_MAGIC;
-	ARGS_ADDR->commandLine = CMD_ADDR;
-	ARGS_ADDR->length = fsize2;
+	ARGS_ADDR->commandLine = (char*)ARGS_ADDR + sizeof(struct __argv);
+	ARGS_ADDR->length = sizeof(NIN_CFG) + 1;
 	ARGS_ADDR->argc = 2;
 
-	memcpy(CMD_ADDR, fPath, fsize);
-	memcpy(CMD_ADDR+fsize, &nincfg, sizeof(NIN_CFG));
-	DCFlushRange(ARGS_ADDR, full_args_len);
+	memcpy((char*)ARGS_ADDR + sizeof(struct __argv) + 1, &nincfg, sizeof(NIN_CFG));
+	DCFlushRange(ARGS_ADDR, sizeof(struct __argv) + sizeof(NIN_CFG) + 1);
 
 	deinitGraphics();
 
