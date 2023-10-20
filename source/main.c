@@ -121,21 +121,7 @@ int main(int argc, char *argv[])
 	__io_wiisd.isInserted();
 	fatMount("sd", &__io_wiisd, 0, 4, 64);
 
-	FILE *f = fopen("sd:/apps/nintendont/boot.dol","rb");
-	if(!f)
-	{
-		nPrintf("boot.dol not found!\n");
-		unmountSD();
-		return -1;
-	}
-	fseek(f,0,SEEK_END);
-	size_t fsize = ftell(f);
-	fseek(f,0,SEEK_SET);
-	fread(EXECUTE_ADDR,1,fsize,f);
-	DCFlushRange(EXECUTE_ADDR,fsize);
-	fclose(f);
-
-	fsize = 0;
+	size_t fsize = 0;
 	if(WDVD_Init() == 0)
 	{
 		if(WDVD_FST_Mount())
@@ -162,7 +148,7 @@ int main(int argc, char *argv[])
 	NIN_CFG nincfg;
 	char *fPath = "sd:/nintendont/configs/XXXX.bin";
 	*(uint32_t *)(fPath + strlen("sd:/nintendont/configs/")) = fsize;
-	f = fopen(fPath,"rb");
+	FILE *f = fopen(fPath,"rb");
 	if(f)
 	{
 		if(fread(&nincfg,sizeof(NIN_CFG),1,f) == 1)
@@ -224,6 +210,27 @@ int main(int argc, char *argv[])
 	}
 
 	unmountISO();
+
+	f = fopen("sd:/apps/nintendont/boot.dol","rb");
+	if(!f)
+	{
+		nPrintf("boot.dol not found!\n");
+		unmountSD();
+		return -5;
+	}
+
+	fseek(f,0,SEEK_END);
+	fsize = ftell(f);
+	fseek(f,0,SEEK_SET);
+	if(fread(EXECUTE_ADDR,fsize,1,f) != 1)
+	{
+		nPrintf("Couldn't read boot.dol!\n");
+		fclose(f);
+		unmountSD();
+		return -6;
+	}
+	DCFlushRange(EXECUTE_ADDR,fsize);
+	fclose(f);
 	unmountSD();
 
 	memset(ARGS_ADDR, 0, sizeof(struct __argv) + 1);
