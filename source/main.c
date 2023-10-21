@@ -21,23 +21,14 @@
 
 static GXRModeObj *rmode = NULL;
 
-static bool __attribute__((noinline)) initGraphics()
+static void __attribute__((noinline)) initGraphics()
 {
 	if(rmode)
-		return true;
+		return;
 
-	VIDEO_Init();
 	rmode = VIDEO_GetPreferredMode(NULL);
-	if(!rmode)
-		return false;
-
 	void *xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
-	if(!xfb)
-	{
-		rmode = NULL;
-		return false;
-	}
-
+	console_init(xfb, 24 * 2, 32, rmode->fbWidth, rmode->xfbHeight, rmode->fbWidth * VI_DISPLAY_PIX_SZ);
 	VIDEO_Configure(rmode);
 	VIDEO_SetNextFramebuffer(xfb);
 	VIDEO_SetBlack(FALSE);
@@ -45,36 +36,28 @@ static bool __attribute__((noinline)) initGraphics()
 	VIDEO_WaitVSync();
 	if(rmode->viTVMode&VI_NON_INTERLACE)
 		VIDEO_WaitVSync();
-
-	CON_InitEx(rmode, 24 * 2, 32, rmode->fbWidth - 32, rmode->xfbHeight - (24 * 3));
-	VIDEO_ClearFrameBuffer(rmode, xfb, COLOR_BLACK);
-	return true;
 }
 
 static void nPrintf(const char *msg, ...)
 {
-	if(initGraphics())
-	{
-		va_list args;
-		va_start(args, msg);
-		vprintf(msg, args);
-		va_end(args);
-		sleep(2);
-	}
+	initGraphics();
+	va_list args;
+	va_start(args, msg);
+	vprintf(msg, args);
+	va_end(args);
+#ifndef DEBUG_BUILD
+	sleep(2);
+#endif
 }
 
 #ifdef DEBUG_BUILD
 	#define debugPrint(...) nPrintf(__VA_ARGS__)
 static inline void deinitGraphics()
 {
-	if(!rmode)
-		return;
-
+	sleep(3);
 	VIDEO_SetBlack(TRUE);
 	VIDEO_Flush();
 	VIDEO_WaitVSync();
-	if(rmode->viTVMode&VI_NON_INTERLACE)
-		VIDEO_WaitVSync();
 }
 #else
 	#define debugPrint(...)
@@ -95,6 +78,7 @@ static inline void unmountISO()
 
 int main(int argc, char *argv[]) 
 {
+	VIDEO_Init();
 	debugPrint("Hello world!\n");
 	fatMountSimple("sd", &__io_wiisd);
 
