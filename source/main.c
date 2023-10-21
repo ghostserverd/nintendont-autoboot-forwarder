@@ -83,7 +83,7 @@ static inline void deinitGraphics()
 
 static uint32_t getIdFromIso()
 {
-	uint32_t ret = 0;
+	uint32_t ret ATTRIBUTE_ALIGN(32) = 0;
 	if(WDVD_FST_OpenDisc(0) == 0)
 	{
 		if(WDVD_FST_Read((uint8_t *)&ret, 4) != 4)
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 		return -2;
 	}
 
-	NIN_CFG nincfg;
+	NIN_CFG nincfg ATTRIBUTE_ALIGN(32);
 	char *fPath = "sd:/nintendont/configs/XXXX.bin";
 	*(uint32_t *)(fPath + strlen("sd:/nintendont/configs/")) = fsize;
 	FILE *f = fopen(fPath,"rb");
