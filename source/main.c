@@ -81,25 +81,6 @@ static inline void deinitGraphics()
 	#define deinitGraphics()
 #endif
 
-static uint32_t getIdFromIso()
-{
-	uint32_t ret ATTRIBUTE_ALIGN(32) = 0;
-	if(WDVD_FST_OpenDisc(0) == 0)
-	{
-		if(WDVD_FST_Read((uint8_t *)&ret, 4) != 4)
-		{
-			ret = 0;
-			debugPrint("Error reading iso!\n");
-		}
-
-		WDVD_FST_Close();
-	}
-	else
-		debugPrint("Error opening iso!\n");
-
-	return ret;
-}
-
 static inline void unmountSD()
 {
 	fatUnmount("sd:");
@@ -117,12 +98,24 @@ int main(int argc, char *argv[])
 	debugPrint("Hello world!\n");
 	fatMountSimple("sd", &__io_wiisd);
 
-	size_t fsize = 0;
+	size_t fsize ATTRIBUTE_ALIGN(32) = 0;
 	if(WDVD_Init() == 0)
 	{
 		if(WDVD_FST_Mount())
 		{
-			fsize = getIdFromIso();
+			if(WDVD_FST_OpenDisc(0) == 0)
+			{
+				if(WDVD_FST_Read((uint8_t *)&fsize, 4) != 4)
+				{
+					fsize = 0;
+					debugPrint("Error reading iso!\n");
+				}
+
+				WDVD_FST_Close();
+			}
+			else
+				debugPrint("Error opening iso!\n");
+
 			if(!fsize)
 				unmountISO();
 		}
